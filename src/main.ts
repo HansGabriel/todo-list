@@ -47,20 +47,29 @@ function renderTasks(tasks: Task[]): void {
   tasks.forEach((task: Task) => {
     const taskItem = document.createElement("li");
     taskItem.className = "task";
-    taskItem.innerHTML = `
-      <span class="${task.completed ? "completed" : ""} ${
-      isExpired(task.dueDate) ? "expired" : ""
-    }">
-        ${task.text} ${task.dueDate ? `(Due: ${task.dueDate})` : ""}
-      </span>
-      <button onclick="removeTask('${task.text}')">Delete</button>
-    `;
 
-    taskItem.addEventListener("click", function () {
-      task.completed = !task.completed;
-      saveTasksToLocalStorage(tasks);
-      renderTasks(tasks);
+    // Create a span element for the task text and attach click listener for toggling completion
+    const taskTextSpan = document.createElement("span");
+    taskTextSpan.textContent = `${task.text} ${
+      task.dueDate ? `(Due: ${task.dueDate})` : ""
+    }`;
+    taskTextSpan.className = `${task.completed ? "completed" : ""} ${
+      isExpired(task.dueDate) ? "expired" : ""
+    }`;
+    taskTextSpan.addEventListener("click", function () {
+      toggleTaskCompletion(task.text);
     });
+
+    // Create a delete button for removing tasks
+    const deleteButton = document.createElement("button");
+    deleteButton.textContent = "Delete";
+    deleteButton.addEventListener("click", function () {
+      removeTask(task.text);
+    });
+
+    // Append the task text and delete button to the task item
+    taskItem.appendChild(taskTextSpan);
+    taskItem.appendChild(deleteButton);
 
     taskList.appendChild(taskItem);
   });
@@ -72,6 +81,18 @@ function removeTask(taskText: string): void {
   tasks = tasks.filter((task: Task) => task.text !== taskText);
   saveTasksToLocalStorage(tasks);
   renderTasks(tasks);
+}
+
+// Function to toggle task completion
+function toggleTaskCompletion(taskText: string): void {
+  const tasks: Task[] = getTasksFromLocalStorage();
+  const task = tasks.find((task) => task.text === taskText);
+
+  if (task) {
+    task.completed = !task.completed;
+    saveTasksToLocalStorage(tasks);
+    renderTasks(tasks);
+  }
 }
 
 // Function to check if a task is expired
